@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">BatteryInformation</string>
+    <string name="is_charging">Charging:%s</string>
+    <string name="charging_type">Charging type:%s</string>
+    <string name="last_charge_type">Last charge type:%s</string>
+    <string name="last_charge_speed">Last charge speed:%s</string>
+    <string name="last_charge_duration">Last charge duration:%s</string>
+    <string name="battery_percent">Battery percent:%d%%</string>
+    <string name="battery_temperature">Temperature:%s</string>
+    <string name="battery_voltage">Voltage:%s</string>
+    <string name="battery_health">Heath:%s</string>
+    <string name="battery_type">Battery type:%s</string>
+    <string name="total_capacity">Total capacity:%s</string>
+    <string name="current_capacity">Current capacity:%s</string>
+    <string name="is_dock">Is Docked:%s</string>
+    <string name="dock_state">Dock State:%s</string>
+    <string name="battery_health_unknown">Unknown</string>
+    <string name="battery_health_good">Good</string>
+    <string name="battery_health_overheat">Overheat</string>
+    <string name="battery_health_dead">Dead</string>
+    <string name="battery_health_over_voltage">Over voltage</string>
+    <string name="battery_health_unspecified_failure">Unspecified failure</string>
+    <string name="battery_health_cold">Cold</string>
+    <string name="battery_plugged_usb">USB</string>
+    <string name="battery_plugged_ac">AC</string>
+    <string name="battery_plugged_wireless">Wireless</string>
+    <string name="battery_plugged_unknown">Unknown</string>
+    <string name="charge_duration_time_h_min">%dh %dmin</string>
+    <string name="charge_duration_time_min">%dmin</string>
+    <string name="charge_duration_time_second">%ds</string>
+    <string name="last_charge_quantity">Last charge quantity:%d%%~%d%%</string>
+    <string name="remaining_time">Remaining time:</string>
+    <string name="remaining_h">h</string>
+    <string name="remaining_min">min</string>
+    <string name="consuming_power_des">%d Apps are using battery</string>
+</resources>

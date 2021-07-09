@@ -1,0 +1,3 @@
+rootProject.name = "BatteryInfomation"
+include ':app'
+include ':library'
