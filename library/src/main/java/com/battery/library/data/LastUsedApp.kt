@@ -1,10 +1,16 @@
 package com.battery.library.data
 
+import android.graphics.drawable.Drawable
+
 /**
  * @author : She Wenbiao
  * @date   : 2021/7/7 2:40 下午
  */
 data class LastUsedApp(var packageName: String) {
+
+    var name: String = ""
+
+    var icon: Drawable? = null
 
     /**
      * the number of times the app was launched as an activity from outside of the app.
@@ -22,10 +28,8 @@ data class LastUsedApp(var packageName: String) {
      */
     var lastTimeUsed: Long = 0L
 
-
     override fun toString(): String {
-        return "LastUsedApp(packageName='$packageName', launchCount=$launchCount, totalTimeInForeground=$totalTimeInForeground, lastTimeUsed=$lastTimeUsed)"
+        return "LastUsedApp(packageName='$packageName', name='$name', launchCount=$launchCount, totalTimeInForeground=$totalTimeInForeground, lastTimeUsed=$lastTimeUsed)"
     }
-
 
 }

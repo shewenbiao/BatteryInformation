@@ -1,5 +1,6 @@
 package com.example.batteryinfomation
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.BatteryManager
 import android.os.Build
@@ -15,8 +16,10 @@ import com.battery.library.BatteryApp
 import com.battery.library.BatteryConstants
 import com.battery.library.data.BatteryInfo
 import com.battery.library.util.BatteryUtil
+import com.battery.library.util.PermissionChecker
 import com.battery.library.util.SystemSettingUtil
 import com.battery.library.viewmodel.BatteryViewModel
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.slider.Slider
 import com.google.android.material.switchmaterial.SwitchMaterial
 
@@ -43,6 +46,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var soundEffectsSwitch: SwitchMaterial
     private lateinit var screenBrightnessSlider: Slider
     private lateinit var screenOffTimeoutSlider: Slider
+
+    private lateinit var appUsageBtn: MaterialButton
 
     private var batteryTotalCapacity: Double = 0.0
 
@@ -124,6 +129,11 @@ class MainActivity : AppCompatActivity() {
 
                 }
             }
+            when(requestFrom) {
+                REQUEST_FROM_USAGE_ACCESS -> {
+                    startActivity(Intent(this, AppUsageActivity::class.java))
+                }
+            }
             requestFrom = REQUEST_FROM_NONE
         }
 
@@ -192,6 +202,18 @@ class MainActivity : AppCompatActivity() {
 
         })
 
+        appUsageBtn = findViewById(R.id.btn_app_usage)
+        appUsageBtn.setOnClickListener {
+            if (!PermissionChecker.hasUsageAccessPermission(this)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    requestFrom = REQUEST_FROM_USAGE_ACCESS
+                    activityLauncher.launch(PermissionChecker.getUsageAccessSettingIntent())
+                }
+            } else {
+                startActivity(Intent(this, AppUsageActivity::class.java))
+            }
+        }
+
 //        val dockTv: TextView = findViewById(R.id.is_dock)
 //        val dockStateTv: TextView = findViewById(R.id.dock_state)
 //        chargeStatusTv.text = String.format(getString(R.string.is_charging), isCharging)
@@ -248,18 +270,6 @@ class MainActivity : AppCompatActivity() {
             consumeAppsTv.text = spannableStringBuilder
         })
         viewModel.getConsumeBatteryApps()
-
-        viewModel.getLastUsedAppList().observe(this, { list ->
-//            Toast.makeText(this, list.toString(), Toast.LENGTH_LONG).show()
-            list.forEach {
-                Log.d("xxxxx", "lastUsedAppList$it")
-            }
-        })
-        val currentTimeMillis = System.currentTimeMillis()
-        viewModel.getLastUsedApps(
-            currentTimeMillis - 10 * BatteryConstants.ONE_DAY,
-            currentTimeMillis
-        )
 
         viewModel.isHapticFeedbackEnabled().observe(this, {
             hapticFeedbackSwitch.isChecked = it
@@ -425,19 +435,19 @@ class MainActivity : AppCompatActivity() {
         return when {
             hour > 0 -> {
                 String.format(
-                    getString(R.string.charge_duration_time_h_min),
+                    getString(R.string.duration_time_h_min),
                     hour, minute
                 )
             }
             minute > 0 -> {
                 String.format(
-                    getString(R.string.charge_duration_time_min),
+                    getString(R.string.duration_time_min),
                     minute
                 )
             }
             else -> {
                 String.format(
-                    getString(R.string.charge_duration_time_second),
+                    getString(R.string.duration_time_second),
                     second
                 )
             }
@@ -463,5 +473,6 @@ class MainActivity : AppCompatActivity() {
         const val REQUEST_FROM_SOUND_EFFECTS = 2
         const val REQUEST_FROM_SCREEN_BRIGHTNESS = 3
         const val REQUEST_FROM_SCREEN_OFF_TIMEOUT = 4
+        const val REQUEST_FROM_USAGE_ACCESS = 5
     }
 }

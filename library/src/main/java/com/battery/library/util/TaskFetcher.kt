@@ -1,6 +1,5 @@
 package com.battery.library.util
 
-import android.app.AppOpsManager
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
@@ -68,7 +67,7 @@ object TaskFetcher {
         endTime: Long
     ): List<LastUsedApp> = withContext(Dispatchers.Default) {
         val list = ArrayList<LastUsedApp>()
-        if (!hasUsageAccessPermission(context)) {
+        if (!PermissionChecker.hasUsageAccessPermission(context)) {
             return@withContext list
         }
         try {
@@ -100,10 +99,13 @@ object TaskFetcher {
                     if (appLaunchCount == 0) {
                         continue
                     }
-                    val appLastTimeUsed = usageStats.lastTimeUsed;
-                    val lastUsedApp = LastUsedApp(usageStats.packageName)
+                    val appLastTimeUsed = usageStats.lastTimeUsed
+                    val packageName = usageStats.packageName
+                    val lastUsedApp = LastUsedApp(packageName)
                     if (!list.contains(lastUsedApp)) {
                         lastUsedApp.apply {
+                            name = AppUtil.getApplicationName(context, packageName)
+                            icon = AppUtil.getAppIcon(context, packageName)
                             launchCount = appLaunchCount
                             totalTimeInForeground = appTotalTimeInForeground
                             lastTimeUsed = appLastTimeUsed
@@ -123,26 +125,6 @@ object TaskFetcher {
         } catch (e: Exception) {
 
         }
-        list
-    }
-
-    fun hasUsageAccessPermission(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                val packageManager = context.packageManager
-                val info = packageManager.getApplicationInfo(context.packageName, 0)
-                val appOpsManager =
-                    context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-                appOpsManager.checkOpNoThrow(
-                    AppOpsManager.OPSTR_GET_USAGE_STATS,
-                    info.uid,
-                    info.packageName
-                ) == AppOpsManager.MODE_ALLOWED
-            } catch (e: Exception) {
-                false
-            }
-        } else {
-            true
-        }
+        list.filter { it.name.isNotEmpty() && it.packageName != context.packageName }
     }
 }

@@ -25,9 +25,9 @@
     <string name="battery_plugged_ac">AC</string>
     <string name="battery_plugged_wireless">Wireless</string>
     <string name="battery_plugged_unknown">Unknown</string>
-    <string name="charge_duration_time_h_min">%dh %dmin</string>
-    <string name="charge_duration_time_min">%dmin</string>
-    <string name="charge_duration_time_second">%ds</string>
+    <string name="duration_time_h_min">%dh %dmin</string>
+    <string name="duration_time_min">%dmin</string>
+    <string name="duration_time_second">%ds</string>
     <string name="last_charge_quantity">Last charge quantity:%d%%~%d%%</string>
     <string name="remaining_time">Remaining time:</string>
     <string name="remaining_h">h</string>
@@ -37,4 +37,6 @@
     <string name="sound_effects">Sound effects</string>
     <string name="screen_brightness">Screen brightness</string>
     <string name="screen_off_timeout">Screen off timeout</string>
+    <string name="apps_usage">Apps Usage</string>
+    <string name="launch_count">launch count: %d</string>
 </resources>
