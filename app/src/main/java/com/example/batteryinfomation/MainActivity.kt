@@ -2,18 +2,23 @@ package com.example.batteryinfomation
 
 import android.graphics.Color
 import android.os.BatteryManager
+import android.os.Build
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.battery.library.BatteryApp
 import com.battery.library.BatteryConstants
 import com.battery.library.data.BatteryInfo
 import com.battery.library.util.BatteryUtil
+import com.battery.library.util.SystemSettingUtil
 import com.battery.library.viewmodel.BatteryViewModel
+import com.google.android.material.slider.Slider
+import com.google.android.material.switchmaterial.SwitchMaterial
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,9 +39,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var lastChargeDurationTv: TextView
     private lateinit var lastChargeQuantityTv: TextView
 
+    private lateinit var hapticFeedbackSwitch: SwitchMaterial
+    private lateinit var soundEffectsSwitch: SwitchMaterial
+    private lateinit var screenBrightnessSlider: Slider
+    private lateinit var screenOffTimeoutSlider: Slider
+
     private var batteryTotalCapacity: Double = 0.0
 
     private lateinit var viewModel: BatteryViewModel
+
+    private var requestFrom = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,6 +101,97 @@ class MainActivity : AppCompatActivity() {
         lastChargeTypeTv = findViewById(R.id.last_charge_type)
         lastChargeDurationTv = findViewById(R.id.last_charge_duration)
         lastChargeQuantityTv = findViewById(R.id.last_charge_quantity)
+
+        val activityLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (SystemSettingUtil.canWrite(this)) {
+                    when(requestFrom) {
+                        REQUEST_FROM_HAPTIC_FEEDBACK -> {
+                            hapticFeedbackSwitch.isChecked = !hapticFeedbackSwitch.isChecked
+                            viewModel.setHapticFeedbackEnabled(hapticFeedbackSwitch.isChecked)
+                        }
+                        REQUEST_FROM_SOUND_EFFECTS -> {
+                            soundEffectsSwitch.isChecked = !soundEffectsSwitch.isChecked
+                            viewModel.setSoundEffectsEnabled(soundEffectsSwitch.isChecked)
+                        }
+                        REQUEST_FROM_SCREEN_BRIGHTNESS -> {
+//                            viewModel.setBrightness(screenBrightnessSlider.value / screenBrightnessSlider.valueTo)
+                        }
+                        REQUEST_FROM_SCREEN_OFF_TIMEOUT -> {
+//                            viewModel.setScreenOffTimeout((screenOffTimeoutSlider.value * 1000).toInt())
+                        }
+                    }
+
+                }
+            }
+            requestFrom = REQUEST_FROM_NONE
+        }
+
+        hapticFeedbackSwitch = findViewById(R.id.switch_haptic_feedback)
+        hapticFeedbackSwitch.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!SystemSettingUtil.canWrite(this)) {
+                    hapticFeedbackSwitch.isChecked = !hapticFeedbackSwitch.isChecked
+                    requestFrom = REQUEST_FROM_HAPTIC_FEEDBACK
+                    activityLauncher.launch(SystemSettingUtil.getManageWriteSettingsIntent(packageName))
+                } else {
+                    viewModel.setHapticFeedbackEnabled(hapticFeedbackSwitch.isChecked)
+                }
+            }
+        }
+
+        soundEffectsSwitch = findViewById(R.id.switch_sound_effects)
+        soundEffectsSwitch.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!SystemSettingUtil.canWrite(this)) {
+                    soundEffectsSwitch.isChecked = !soundEffectsSwitch.isChecked
+                    requestFrom = REQUEST_FROM_SOUND_EFFECTS
+                    activityLauncher.launch(SystemSettingUtil.getManageWriteSettingsIntent(packageName))
+                } else {
+                    viewModel.setSoundEffectsEnabled(soundEffectsSwitch.isChecked)
+                }
+            }
+        }
+
+        screenBrightnessSlider = findViewById(R.id.slider_brightness)
+        screenBrightnessSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!SystemSettingUtil.canWrite(this@MainActivity)) {
+                        activityLauncher.launch(SystemSettingUtil.getManageWriteSettingsIntent(packageName))
+                    } else {
+                        val brightness = slider.value / slider.valueTo
+//                        val attributes = window.attributes
+//                        attributes.screenBrightness = brightness
+//                        window.attributes = attributes
+                        viewModel.setBrightness(brightness)
+                    }
+                }
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+
+            }
+
+        })
+        screenOffTimeoutSlider = findViewById(R.id.slider_screen_off_timeout)
+        screenOffTimeoutSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!SystemSettingUtil.canWrite(this@MainActivity)) {
+                        activityLauncher.launch(SystemSettingUtil.getManageWriteSettingsIntent(packageName))
+                    } else {
+                        viewModel.setScreenOffTimeout((slider.value * 1000).toInt())
+                    }
+                }
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+
+            }
+
+        })
+
 //        val dockTv: TextView = findViewById(R.id.is_dock)
 //        val dockStateTv: TextView = findViewById(R.id.dock_state)
 //        chargeStatusTv.text = String.format(getString(R.string.is_charging), isCharging)
@@ -157,6 +260,42 @@ class MainActivity : AppCompatActivity() {
             currentTimeMillis - 10 * BatteryConstants.ONE_DAY,
             currentTimeMillis
         )
+
+        viewModel.isHapticFeedbackEnabled().observe(this, {
+            hapticFeedbackSwitch.isChecked = it
+        })
+
+        viewModel.isSoundEffectsEnabled().observe(this, {
+            soundEffectsSwitch.isChecked = it
+        })
+
+        viewModel.getBrightnessValue().observe(this, {
+            screenBrightnessSlider.value =
+                it / 255f * (screenBrightnessSlider.valueTo - screenBrightnessSlider.valueFrom)
+        })
+
+        viewModel.getScreenOffTimeoutValue().observe(this, {
+            val value = it / 1000f
+            screenOffTimeoutSlider.value = when {
+                value < screenOffTimeoutSlider.valueFrom -> {
+                    screenOffTimeoutSlider.valueFrom
+                }
+                value > screenOffTimeoutSlider.valueTo -> {
+                    screenOffTimeoutSlider.valueTo
+                }
+                else -> {
+                    value
+                }
+            }
+        })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.getHapticFeedbackEnabled()
+        viewModel.getSoundEffectsEnabled()
+        viewModel.getBrightness()
+        viewModel.getScreenOffTimeout()
     }
 
     private fun updateUI(batteryInfo: BatteryInfo) {
@@ -164,34 +303,38 @@ class MainActivity : AppCompatActivity() {
         remainingHourTv.text = timeArray[0]
         remainingMinuteTv.text = formatRemainingMinuteValue(timeArray[1])
         chargeStatusTv.text = String.format(getString(R.string.is_charging), batteryInfo.isCharging)
-        chargingTypeTv.text = String.format(getString(R.string.charging_type), when {
-            batteryInfo.usbCharging -> {
-                "USB"
+        chargingTypeTv.text = String.format(
+            getString(R.string.charging_type), when {
+                batteryInfo.usbCharging -> {
+                    "USB"
+                }
+                batteryInfo.acCharging -> {
+                    "AC charger"
+                }
+                batteryInfo.wirelessCharging -> {
+                    "Wireless"
+                }
+                else -> {
+                    "--"
+                }
             }
-            batteryInfo.acCharging -> {
-                "AC charger"
+        )
+        lastChargeSpeedTv.text = String.format(
+            getString(R.string.last_charge_speed), when (batteryInfo.lastChargeSpeed) {
+                BatteryConstants.CHARGING_NORMAL -> {
+                    "Normal"
+                }
+                BatteryConstants.CHARGING_FAST -> {
+                    "Fast charge"
+                }
+                BatteryConstants.CHARGING_OVER -> {
+                    "Overcharge"
+                }
+                else -> {
+                    "--"
+                }
             }
-            batteryInfo.wirelessCharging -> {
-                "Wireless"
-            }
-            else -> {
-                "--"
-            }
-        })
-        lastChargeSpeedTv.text = String.format(getString(R.string.last_charge_speed), when(batteryInfo.lastChargeSpeed) {
-            BatteryConstants.CHARGING_NORMAL -> {
-                "Normal"
-            }
-            BatteryConstants.CHARGING_FAST -> {
-                "Fast charge"
-            }
-            BatteryConstants.CHARGING_OVER -> {
-                "Overcharge"
-            }
-            else -> {
-                "--"
-            }
-        })
+        )
         lastChargeTypeTv.text =
             String.format(
                 getString(R.string.last_charge_type), when (batteryInfo.lastChargePlugged) {
@@ -312,5 +455,13 @@ class MainActivity : AppCompatActivity() {
         return if (minuteValue.length >= 2) {
             minuteValue
         } else "0$minuteValue"
+    }
+
+    companion object {
+        const val REQUEST_FROM_NONE = -1
+        const val REQUEST_FROM_HAPTIC_FEEDBACK = 1
+        const val REQUEST_FROM_SOUND_EFFECTS = 2
+        const val REQUEST_FROM_SCREEN_BRIGHTNESS = 3
+        const val REQUEST_FROM_SCREEN_OFF_TIMEOUT = 4
     }
 }

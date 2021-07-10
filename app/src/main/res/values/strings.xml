@@ -33,4 +33,8 @@
     <string name="remaining_h">h</string>
     <string name="remaining_min">min</string>
     <string name="consuming_power_des">%d Apps are using battery</string>
+    <string name="haptic_feedback">Haptic feedback</string>
+    <string name="sound_effects">Sound effects</string>
+    <string name="screen_brightness">Screen brightness</string>
+    <string name="screen_off_timeout">Screen off timeout</string>
 </resources>
