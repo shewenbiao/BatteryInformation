@@ -1,7 +1,6 @@
 package com.battery.library.viewmodel
 
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -75,7 +74,6 @@ class BatteryViewModel : ViewModel() {
         hapticFeedbackEnabled.value = enable
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
     fun setHapticFeedbackEnabled(enable: Boolean): Boolean {
         val value = if (enable) {
             1
@@ -92,7 +90,6 @@ class BatteryViewModel : ViewModel() {
         soundEffectsEnabled.value = enable
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
     fun setSoundEffectsEnabled(enable: Boolean): Boolean {
         val value = if (enable) {
             1
@@ -109,7 +106,6 @@ class BatteryViewModel : ViewModel() {
         screenBrightness.value = value
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
     fun setBrightness(brightness: Float): Boolean {
         return SystemSettingUtil.setBrightness(BatteryApp.getApplication(), brightness)
     }
@@ -121,7 +117,6 @@ class BatteryViewModel : ViewModel() {
         screenOffTimeout.value = value
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
     fun setScreenOffTimeout(timeout: Int): Boolean {
         return SystemSettingUtil.setScreenOffTimeout(BatteryApp.getApplication(), timeout)
     }

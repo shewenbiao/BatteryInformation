@@ -24,7 +24,6 @@ object SystemSettingUtil {
     /**
      * @param timeout (unit: millisecond)
      */
-    @RequiresApi(Build.VERSION_CODES.M)
     fun setScreenOffTimeout(context: Context, timeout: Int): Boolean {
         if (!canWrite(context)) {
             return false
@@ -49,7 +48,6 @@ object SystemSettingUtil {
     /**
      * @param enable 1 or 0 (1:enable 0:disable)
      */
-    @RequiresApi(Build.VERSION_CODES.M)
     fun setHapticFeedback(context: Context, enable: Int): Boolean {
         if (!canWrite(context)) {
             return false
@@ -71,7 +69,6 @@ object SystemSettingUtil {
     /**
      * @param enable 1 or 0 (1:enable 0:disable)
      */
-    @RequiresApi(Build.VERSION_CODES.M)
     fun setSoundEffects(context: Context, enable: Int): Boolean {
         if (!canWrite(context)) {
             return false
@@ -92,7 +89,6 @@ object SystemSettingUtil {
     /**
      * @param brightness The screen backlight brightness between 0 and 255
      */
-    @RequiresApi(Build.VERSION_CODES.M)
     fun setBrightness(context: Context, brightness: Int): Boolean {
         if (!canWrite(context)) {
             return false
@@ -108,7 +104,6 @@ object SystemSettingUtil {
      * Need permission: android.permission.WRITE_SETTINGS
      * @param brightness The screen backlight brightness between 0 and 1
      */
-    @RequiresApi(Build.VERSION_CODES.M)
     fun setBrightness(context: Context, brightness: Float): Boolean {
         return setBrightness(context, (brightness * 255).toInt())
     }
@@ -131,7 +126,6 @@ object SystemSettingUtil {
      * @param mode {android.provider.Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC
      * or android.provider.Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL}
      */
-    @RequiresApi(Build.VERSION_CODES.M)
     fun setBrightnessMode(context: Context, mode: Int): Boolean {
         if (!canWrite(context)) {
             return false
@@ -156,8 +150,8 @@ object SystemSettingUtil {
      * @param context App context.
      * @return true if the calling app can write to system settings, false otherwise
      */
-    @RequiresApi(Build.VERSION_CODES.M)
-    fun canWrite(context: Context): Boolean = Settings.System.canWrite(context)
+    fun canWrite(context: Context): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+        Settings.System.canWrite(context) else true
 
 
     @RequiresApi(Build.VERSION_CODES.M)

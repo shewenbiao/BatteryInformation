@@ -9,9 +9,13 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
+import android.widget.AdapterView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatSpinner
 import com.battery.library.BatteryApp
 import com.battery.library.BatteryConstants
 import com.battery.library.data.BatteryInfo
@@ -45,7 +49,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var hapticFeedbackSwitch: SwitchMaterial
     private lateinit var soundEffectsSwitch: SwitchMaterial
     private lateinit var screenBrightnessSlider: Slider
-    private lateinit var screenOffTimeoutSlider: Slider
+    private lateinit var screenOffTimeoutSpinner: AppCompatSpinner
 
     private lateinit var appUsageBtn: MaterialButton
 
@@ -107,75 +111,80 @@ class MainActivity : AppCompatActivity() {
         lastChargeDurationTv = findViewById(R.id.last_charge_duration)
         lastChargeQuantityTv = findViewById(R.id.last_charge_quantity)
 
-        val activityLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (SystemSettingUtil.canWrite(this)) {
-                    when(requestFrom) {
-                        REQUEST_FROM_HAPTIC_FEEDBACK -> {
-                            hapticFeedbackSwitch.isChecked = !hapticFeedbackSwitch.isChecked
-                            viewModel.setHapticFeedbackEnabled(hapticFeedbackSwitch.isChecked)
-                        }
-                        REQUEST_FROM_SOUND_EFFECTS -> {
-                            soundEffectsSwitch.isChecked = !soundEffectsSwitch.isChecked
-                            viewModel.setSoundEffectsEnabled(soundEffectsSwitch.isChecked)
-                        }
-                        REQUEST_FROM_SCREEN_BRIGHTNESS -> {
+        val activityLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (SystemSettingUtil.canWrite(this)) {
+                        when (requestFrom) {
+                            REQUEST_FROM_HAPTIC_FEEDBACK -> {
+                                hapticFeedbackSwitch.isChecked = !hapticFeedbackSwitch.isChecked
+                                viewModel.setHapticFeedbackEnabled(hapticFeedbackSwitch.isChecked)
+                            }
+                            REQUEST_FROM_SOUND_EFFECTS -> {
+                                soundEffectsSwitch.isChecked = !soundEffectsSwitch.isChecked
+                                viewModel.setSoundEffectsEnabled(soundEffectsSwitch.isChecked)
+                            }
+                            REQUEST_FROM_SCREEN_BRIGHTNESS -> {
 //                            viewModel.setBrightness(screenBrightnessSlider.value / screenBrightnessSlider.valueTo)
+                            }
+                            REQUEST_FROM_SCREEN_OFF_TIMEOUT -> {
+
+                            }
                         }
-                        REQUEST_FROM_SCREEN_OFF_TIMEOUT -> {
-//                            viewModel.setScreenOffTimeout((screenOffTimeoutSlider.value * 1000).toInt())
+
+                    }
+                }
+                when (requestFrom) {
+                    REQUEST_FROM_USAGE_ACCESS -> {
+                        if (PermissionChecker.hasUsageAccessPermission(this)) {
+                            startActivity(Intent(this, AppUsageActivity::class.java))
                         }
                     }
-
                 }
+                requestFrom = REQUEST_FROM_NONE
             }
-            when(requestFrom) {
-                REQUEST_FROM_USAGE_ACCESS -> {
-                    startActivity(Intent(this, AppUsageActivity::class.java))
-                }
-            }
-            requestFrom = REQUEST_FROM_NONE
-        }
 
         hapticFeedbackSwitch = findViewById(R.id.switch_haptic_feedback)
         hapticFeedbackSwitch.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (!SystemSettingUtil.canWrite(this)) {
-                    hapticFeedbackSwitch.isChecked = !hapticFeedbackSwitch.isChecked
-                    requestFrom = REQUEST_FROM_HAPTIC_FEEDBACK
-                    activityLauncher.launch(SystemSettingUtil.getManageWriteSettingsIntent(packageName))
-                } else {
-                    viewModel.setHapticFeedbackEnabled(hapticFeedbackSwitch.isChecked)
-                }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !SystemSettingUtil.canWrite(this)) {
+                hapticFeedbackSwitch.isChecked = !hapticFeedbackSwitch.isChecked
+                requestFrom = REQUEST_FROM_HAPTIC_FEEDBACK
+                activityLauncher.launch(SystemSettingUtil.getManageWriteSettingsIntent(packageName))
+            } else {
+                viewModel.setHapticFeedbackEnabled(hapticFeedbackSwitch.isChecked)
             }
         }
 
         soundEffectsSwitch = findViewById(R.id.switch_sound_effects)
         soundEffectsSwitch.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (!SystemSettingUtil.canWrite(this)) {
-                    soundEffectsSwitch.isChecked = !soundEffectsSwitch.isChecked
-                    requestFrom = REQUEST_FROM_SOUND_EFFECTS
-                    activityLauncher.launch(SystemSettingUtil.getManageWriteSettingsIntent(packageName))
-                } else {
-                    viewModel.setSoundEffectsEnabled(soundEffectsSwitch.isChecked)
-                }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !SystemSettingUtil.canWrite(this)) {
+                soundEffectsSwitch.isChecked = !soundEffectsSwitch.isChecked
+                requestFrom = REQUEST_FROM_SOUND_EFFECTS
+                activityLauncher.launch(SystemSettingUtil.getManageWriteSettingsIntent(packageName))
+            } else {
+                viewModel.setSoundEffectsEnabled(soundEffectsSwitch.isChecked)
             }
         }
 
         screenBrightnessSlider = findViewById(R.id.slider_brightness)
         screenBrightnessSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (!SystemSettingUtil.canWrite(this@MainActivity)) {
-                        activityLauncher.launch(SystemSettingUtil.getManageWriteSettingsIntent(packageName))
-                    } else {
-                        val brightness = slider.value / slider.valueTo
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !SystemSettingUtil.canWrite(
+                        this@MainActivity
+                    )
+                ) {
+                    activityLauncher.launch(
+                        SystemSettingUtil.getManageWriteSettingsIntent(
+                            packageName
+                        )
+                    )
+
+                } else {
+                    val brightness = slider.value / slider.valueTo
 //                        val attributes = window.attributes
 //                        attributes.screenBrightness = brightness
 //                        window.attributes = attributes
-                        viewModel.setBrightness(brightness)
-                    }
+                    viewModel.setBrightness(brightness)
                 }
             }
 
@@ -184,23 +193,36 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
-        screenOffTimeoutSlider = findViewById(R.id.slider_screen_off_timeout)
-        screenOffTimeoutSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
-            override fun onStartTrackingTouch(slider: Slider) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (!SystemSettingUtil.canWrite(this@MainActivity)) {
+        screenOffTimeoutSpinner = findViewById(R.id.spinner_screen_off_timeout)
+        screenOffTimeoutSpinner.setOnTouchListener { _, event ->
+            when(event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !SystemSettingUtil.canWrite(this@MainActivity)) {
                         activityLauncher.launch(SystemSettingUtil.getManageWriteSettingsIntent(packageName))
-                    } else {
-                        viewModel.setScreenOffTimeout((slider.value * 1000).toInt())
                     }
                 }
-            }
-
-            override fun onStopTrackingTouch(slider: Slider) {
 
             }
+            return@setOnTouchListener false
+        }
+        val timeoutValues: IntArray = resources.getIntArray(R.array.screen_off_timeout_value)
+        screenOffTimeoutSpinner.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    val value = timeoutValues[position]
+                    viewModel.setScreenOffTimeout(value * 1000)
+                }
 
-        })
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+
+                }
+
+            }
 
         appUsageBtn = findViewById(R.id.btn_app_usage)
         appUsageBtn.setOnClickListener {
@@ -285,17 +307,11 @@ class MainActivity : AppCompatActivity() {
         })
 
         viewModel.getScreenOffTimeoutValue().observe(this, {
-            val value = it / 1000f
-            screenOffTimeoutSlider.value = when {
-                value < screenOffTimeoutSlider.valueFrom -> {
-                    screenOffTimeoutSlider.valueFrom
-                }
-                value > screenOffTimeoutSlider.valueTo -> {
-                    screenOffTimeoutSlider.valueTo
-                }
-                else -> {
-                    value
-                }
+            val value = it / 1000
+            if (value in timeoutValues) {
+                screenOffTimeoutSpinner.setSelection(timeoutValues.indexOf(value), true)
+            } else {
+                screenOffTimeoutSpinner.setSelection(0, true)
             }
         })
     }

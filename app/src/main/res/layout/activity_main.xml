@@ -276,24 +276,25 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/slider_brightness" />
 
-        <com.google.android.material.slider.Slider
-            android:id="@+id/slider_screen_off_timeout"
-            android:layout_width="match_parent"
+        <androidx.appcompat.widget.AppCompatSpinner
+            android:id="@+id/spinner_screen_off_timeout"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:valueFrom="10"
-            android:valueTo="60"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_screen_off_timeout" />
+            android:entries="@array/screen_off_timeout"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toEndOf="@id/tv_screen_off_timeout"
+            app:layout_constraintBottom_toBottomOf="@id/tv_screen_off_timeout"
+            app:layout_constraintTop_toTopOf="@id/tv_screen_off_timeout"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_app_usage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="20dp"
             android:text="@string/apps_usage"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/slider_screen_off_timeout" />
+            app:layout_constraintTop_toBottomOf="@id/tv_screen_off_timeout" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>
